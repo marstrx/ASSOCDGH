@@ -5,6 +5,7 @@ require('dotenv').config();
 const authRoutes = require("./routes/auth-routes");
 const cookieParser = require("cookie-parser");
 const homePageRoutes = require("./routes/homePage");
+const dashboardRoutes = require("./routes/dashboard");
 
 
 
@@ -16,6 +17,9 @@ app.use(cookieParser());
 app.use("/api/auth" ,authRoutes); 
 
 app.use("/api/user" ,homePageRoutes); 
+
+app.use("/api/admin" ,dashboardRoutes); 
+
 connectToDb();
 
 

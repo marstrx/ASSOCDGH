@@ -9,7 +9,7 @@ const register = async (req, res) => {
         return res.status(400).json({ errors: errors.array() });
     }
     try {
-        const { username, email, password } = req.body;
+        const { username, email, password ,role} = req.body;
 
         if (!username || !email || !password) {
             return res.status(400).json({
@@ -33,7 +33,8 @@ const register = async (req, res) => {
         const newUser = new User({
             username,
             email: email.toLowerCase(),
-            password: hashedPassword
+            password: hashedPassword,
+            role :role || "user"
         });
         await newUser.save();
 
@@ -81,7 +82,7 @@ const login = async (req, res) => {
         }
 
         const userToken = jwt.sign(
-            { username: user.username, email: user.email },
+            { username: user.username, email: user.email, role :user.role},
             process.env.SECRET_CODE,
             { expiresIn: "1h" }
         );
@@ -108,4 +109,18 @@ const login = async (req, res) => {
 };
 
 
-module.exports = { register ,login };
+const logout =(req,res)=>{
+    res.clearCookie("token",{
+        httpOnly:true,
+        secure : process.env.NODE_ENV === "production",
+        sameSite :"strict"
+    });
+    return res.status(200).json({
+        success :true,
+        message: "Logged out successfully"
+
+    })
+}
+
+
+module.exports = { register ,login ,logout};

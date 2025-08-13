@@ -1,4 +1,4 @@
-const {register ,login} = require("../controllers/auth-controller");
+const {register ,login ,logout} = require("../controllers/auth-controller");
 const express = require("express");
 const authRoutes = express.Router();
 const {check} = require("express-validator");
@@ -11,6 +11,7 @@ const registerValidationRules=[
 
 authRoutes.post("/register",registerValidationRules ,register);
 authRoutes.post("/login" ,login);
+authRoutes.post("/logout", logout);
 
 
 module.exports = authRoutes ;
