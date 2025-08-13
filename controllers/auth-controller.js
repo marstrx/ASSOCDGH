@@ -1,6 +1,7 @@
 const bcryptjs = require("bcryptjs");
 const User = require("../models/user-model");
 const {validationResult} = require("express-validator");
+const jwt = require("jsonwebtoken");
 
 const register = async (req, res) => {
     const errors = validationResult(req);
@@ -50,4 +51,61 @@ const register = async (req, res) => {
     }
 };
 
-module.exports = { register };
+
+
+const login = async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        if (!email || !password) {
+            return res.status(400).json({
+                success: false,
+                message: "All fields are required"
+            });
+        }
+
+        const user = await User.findOne({ email: email.toLowerCase() });
+        if (!user) {
+            return res.status(401).json({
+                success: false,
+                message: "User with this email does not exist"
+            });
+        }
+
+        const isPasswordCorrect = await bcryptjs.compare(password, user.password);
+        if (!isPasswordCorrect) {
+            return res.status(401).json({
+                success: false,
+                message: "Incorrect password"
+            });
+        }
+
+        const userToken = jwt.sign(
+            { username: user.username, email: user.email },
+            process.env.SECRET_CODE,
+            { expiresIn: "1h" }
+        );
+
+         res.cookie("token", userToken, {
+            httpOnly: true, 
+            secure: process.env.NODE_ENV === "production", 
+            sameSite: "strict", 
+            maxAge: 60 * 60 * 1000 
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "Login successful"
+        });
+
+    } catch (error) {
+        console.error("Error in login:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Something went wrong"
+        });
+    }
+};
+
+
+module.exports = { register ,login };
