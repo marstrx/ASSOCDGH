@@ -70,7 +70,67 @@ const register =async(req,res)=>{
 }
 
 
+//  login 
 
+const login = async (req,res)=>{
+    const {email,password} =req.body ;
+
+    if(!email || !password){
+        res.json({
+            success:false,
+            message :"Email and password are required"
+        })
+    }
+    try {
+        const user = await User.findOne({email});
+
+        if(!user){
+            return res.json({
+                success:false ,
+                message :"Invalid email"
+            })
+        }
+
+        const isMatch = await bcrypt.compare(password ,user.password);
+
+        if(!isMatch){
+            return res.json({
+                success :false ,
+                message :"Wrong password"
+            })
+        }
+
+        const token = jwt.sign({
+            id:user._id ,
+            name :user.name,
+            role:user.role
+        },process.env.JWT_SECRET_CODE,{
+            expiresIn :"7d"
+        });
+
+        // send cookie
+        res.cookie("token", token ,{
+            httpOnly :true,
+            secure :process.env.NODE_ENV === "production",
+            sameSite : process.env.NODE_ENV === "production" ? "none" :"strict",
+            maxAge :7 * 24 *60 *60 *1000
+        })
+
+        res.status(200).json({
+            success: true,
+            message: "login successed",
+            user: {
+                name: user.name
+            },
+        });
+
+    } catch (error) {
+        res.json({
+            success:false,
+            message : error.message
+        })
+    }
+}
 
 
 
