@@ -4,12 +4,7 @@ const mongoose = require("mongoose");
 
 
 const userSchema = new mongoose.Schema({
-    firstName: {
-        type: String,
-        required: true,
-        trim: true
-    },
-    lastName: {
+    name: {
         type: String,
         required: true,
         trim: true
@@ -24,6 +19,10 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true,
         // select: false 
+    },
+    role:{
+        type:String,
+        default :"user"
     },
     phone: {
         type: String,
