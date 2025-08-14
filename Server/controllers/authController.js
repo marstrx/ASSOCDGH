@@ -157,4 +157,4 @@ const logout =async(req,res)=>{
     }
 }
 
-module.exports ={register}
+module.exports ={register ,login ,logout} ;
