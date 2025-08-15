@@ -2,6 +2,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/userModel");
 require("dotenv").config();
+const transporter = require("../config/nodemailer");
 
 
 
@@ -51,6 +52,16 @@ const register =async(req,res)=>{
             maxAge :7 * 24 *60 *60 *1000
         })
 
+
+        // sending welcome email
+        const mailOptions ={
+            from : process.env.SENDER_EMAIL,
+            to :email,
+            subject :"welcome to ASSOCDGH",
+            text :`Welcome to ASSOCDGH your account has been created with this email id : ${email}`
+        }; 
+
+        await transporter.sendMail(mailOptions);
 
         res.status(201).json({
             success: true,
