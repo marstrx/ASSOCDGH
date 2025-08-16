@@ -129,7 +129,7 @@ const login = async (req,res)=>{
 
         res.status(200).json({
             success: true,
-            message: "login successed",
+            message: "Login Successed",
             user: {
                 name: user.name
             },
@@ -158,7 +158,7 @@ const logout =async(req,res)=>{
 
         res.json({
             success :true,
-            message :"logout successed"
+            message :"Logout Successed"
         })
     } catch (error) {
         res.json({
@@ -175,11 +175,16 @@ const sendVerifyOtp=async(req,res)=>{
         const {userId} = req.body ;
 
         const user = await User.findById(userId);
-
+        if (!user) {
+            return res.json({
+                success: false,
+                message: "User not found",
+            });
+        }
         if(user.isAccountVerified){
             return res.json({
                 success :false,
-                message :"account is already verified"
+                message :"Account is Already Verified"
             })
         }
 
@@ -192,14 +197,14 @@ const sendVerifyOtp=async(req,res)=>{
             from : process.env.SENDER_EMAIL,
             to :user.email,
             subject :"Account Verification",
-            text :`Your Verification code is ${otp} Verify your Account using this code`
+            text :`Your Verification Code is ${otp} Verify Your Account Using This Code`
         }; 
 
         await transporter.sendMail(mailOptions);
 
         res.json({
             success :true,
-            message :"Verification code sent to you email"
+            message :"Verification Code Sent To Your Email"
         })
     } catch (error) {
         res.json({
@@ -212,53 +217,55 @@ const sendVerifyOtp=async(req,res)=>{
 
 //  verify email
 
-const verifyEmail =async(req,res)=>{
-    const {userId ,otp} = req.body;
-    if(!userId || !otp){
-        res.json({
-            success:false,
-            message:"Missing Details"
-        })
+const verifyEmail = async (req, res) => {
+    const { userId, otp } = req.body;
+
+    if (!userId || !otp) {
+        return res.json({
+            success: false,
+            message: "Missing details"
+        });
     }
 
     try {
         const user = await User.findById(userId);
-        if(!user){
-            res.json({
-                success:false,
-                message:"user not found"
-            })
-        }
-
-        if(user.verifyOtp === "" || user.verifyOtp !== otp){
-            res.json({
-                success:false,
-                message:"invalid code "
-            })
-        }
-
-        if(user.verifyOtpExpireAt < Date.now()){
+        if (!user) {
             return res.json({
-                success:false,
-                message:"Verification code is expired"
-            })
+                success: false,
+                message: "User not found"
+            });
         }
 
-        user.isAccountVerified = true ;
-        user.verifyOtp = "" ;
+        if (!user.verifyOtp || user.verifyOtp !== otp) {
+            return res.json({
+                success: false,
+                message: "Invalid code"
+            });
+        }
+
+        if (user.verifyOtpExpireAt < Date.now()) {
+            return res.json({
+                success: false,
+                message: "Verification code is expired"
+            });
+        }
+
+        user.isAccountVerified = true;
+        user.verifyOtp = "";
         user.verifyOtpExpireAt = 0;
 
         await user.save();
-        return res.json({
-            success:true,
-            message :"Email Verified succussfully"
-        })
-    } catch (error) {
-        res.json({
-            success:false,
-            message :error.message
-        })
-    }
 
-}
-module.exports ={register ,login ,logout} ;
+        return res.json({
+            success: true,
+            message: "Email verified successfully"
+        });
+    } catch (error) {
+        return res.json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
+module.exports ={register ,login ,logout ,sendVerifyOtp ,verifyEmail} ;
