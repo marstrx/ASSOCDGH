@@ -3,6 +3,7 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/userModel");
 require("dotenv").config();
 const transporter = require("../config/nodemailer");
+const crypto = require("crypto");
 
 
 
@@ -268,4 +269,121 @@ const verifyEmail = async (req, res) => {
     }
 };
 
-module.exports ={register ,login ,logout ,sendVerifyOtp ,verifyEmail} ;
+
+// check if the user is authenticated
+const isAuthenticated =async(req,res)=>{
+    try {
+        return res.json({
+            success:true
+        })
+    } catch (error) {
+        res.json({
+            success:false,
+            message :error.message
+        })
+    }
+}
+
+
+
+// send reset password code 
+const sendResetOtp =async(req,res)=>{
+    const {email} = req.body;
+    if(!email){
+        return res.json({
+            success:false,
+            message:"Email is required"
+        })
+    }
+
+    try {
+        const user = await User.findOne({email});
+        if(!user){
+            return res.json({
+                success:false,
+                message:"User not found"
+            })
+        }
+
+        const otp = crypto.randomInt(100000,1000000).toString();
+        user.resetOtp = otp;
+        user.verifyOtpExpireAt = Date.now() +15 *60 *1000
+        await user.save();
+
+        const mailOptions={
+            from :process.env.SENDER_EMAIL,
+            to :user.email,
+            subject :"Reset Password",
+            text :`you resete password code is ${otp}`
+        };
+
+        await transporter.sendMail(mailOptions);
+        res.json({
+            success:true,
+            message :"Reset code sent successfully"
+        })
+    } catch (error) {
+        res.json({
+            success:false,
+            message :error.message
+        })
+    }
+
+}
+
+
+// reset user password 
+const resetPassword = async(req,res)=>{
+    const {email ,otp ,newPassword} = req.body ;
+    if(!email || !otp || !newPassword){
+        return res.json({
+            success:false, 
+            message:"Missing fields"
+        })
+    }
+
+
+
+    try {
+        const user = await User.findOne({email});
+        if(!user){
+            return res.json({
+                success:false,
+                message:"email not found"
+            })
+        }
+
+        if(user.resetOtp === "" || user.resetOtp !== otp){
+            return res.json({
+                success:false,
+                message:"inavlide code"
+            })
+        }
+        if(user.verifyOtpExpireAt <Date.now()){
+            return res.json({
+                success:false,
+                message:"expired code "
+            })
+        }
+
+        const hashedPassword =await bcrypt.hash(newPassword,10);
+        user.password = hashedPassword ;
+        user.verifyOtpExpireAt =0;
+        user.resetOtp ="";
+
+        await user.save();
+
+        return res.json({
+            success:true,
+            message:"password changed successfully"
+        })
+    } catch (error) {
+        res.json({
+            success:false,
+            message:error.message
+        })
+    }
+}
+
+
+module.exports ={register ,login ,logout ,sendVerifyOtp ,verifyEmail ,isAuthenticated ,sendResetOtp, resetPassword} ;
