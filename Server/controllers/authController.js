@@ -88,7 +88,7 @@ const login = async (req,res)=>{
     const {email,password} =req.body ;
 
     if(!email || !password){
-        res.json({
+        return res.json({
             success:false,
             message :"Email and password are required"
         })
@@ -193,7 +193,7 @@ const sendVerifyOtp=async(req,res)=>{
         user.verifyOtp = otp ;
         user.verifyOtpExpireAt = Date.now() + 24 * 60 *60 *1000 ;
 
-        user.save();
+        await user.save();
         const mailOptions ={
             from : process.env.SENDER_EMAIL,
             to :user.email,
