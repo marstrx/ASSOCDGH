@@ -1,57 +1,55 @@
 const mongoose = require("mongoose");
 
-
-
-
-const userSchema = new mongoose.Schema({
+const userSchema = new mongoose.Schema(
+  {
     name: {
-        type: String,
-        required: true,
-        trim: true
+      type: String,
+      required: true,
+      trim: true,
     },
     email: {
-        type: String,
-        required: true,
-        unique: true,
-        lowercase: true
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
     },
     password: {
-        type: String,
-        required: true,
-        // select: false 
+      type: String,
+      required: true,
+      // select: false
     },
-    role:{
-        type:String,
-        default :"user"
+    role: {
+      type: String,
+      default: "user",
     },
     phone: {
-        type: String,
-        trim: true
+      type: String,
+      trim: true,
     },
     totalAmount: {
-        type: Number,
-        default: 0
+      type: Number,
+      default: 0,
     },
     verifyOtp: {
-        type: String,
-        default: ""
+      type: String,
+      default: "",
     },
     verifyOtpExpireAt: {
-        type: Number
+      type: Number,
     },
     isAccountVerified: {
-        type: Boolean,
-        default: false
+      type: Boolean,
+      default: false,
     },
     resetOtp: {
-        type: String,
-        default: ""
+      type: String,
+      default: "",
     },
     resetOtpExpireAt: {
-        type: Number
-    }
-}, {timestamps: true });
-
-
+      type: Number,
+    },
+  },
+  { timestamps: true }
+);
 
 module.exports = mongoose.models.User || mongoose.model("User", userSchema);
